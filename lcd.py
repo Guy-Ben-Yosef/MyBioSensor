@@ -8,11 +8,10 @@ SCK = 10
 MOSI = 11
 MISO = 12
 RST = 8
-
 BL = 15 
 
 class LCD_1inch28(framebuf.FrameBuffer):
-    def __init__(self): # SPI initialization
+    def __init__(self):
         self.width = 240
         self.height = 240
         
@@ -20,7 +19,7 @@ class LCD_1inch28(framebuf.FrameBuffer):
         self.rst = Pin(RST,Pin.OUT)
         
         self.cs(1)
-        self.spi = SPI(1,100_000_000,polarity=0, phase=0,bits= 8,sck=Pin(SCK),mosi=Pin(MOSI),miso=None)
+        self.spi = SPI(1,100_000_000,polarity=0, phase=0,bits=8,sck=Pin(SCK),mosi=Pin(MOSI),miso=None)
         self.dc = Pin(DC,Pin.OUT)
         self.dc(1)
         self.buffer = bytearray(self.height * self.width * 2)
@@ -35,11 +34,49 @@ class LCD_1inch28(framebuf.FrameBuffer):
         self.black =   0x0000
         self.brown =   0X8430
         
-        self.fill(self.white) # Clear screen
-        self.show()# Show
+        self.fill(self.white)
+        self.show()
 
         self.pwm = PWM(Pin(BL))
-        self.pwm.freq(5000) # Turn on the backlight
+        self.pwm.freq(5000)
+
+    def draw_circle(self, x0, y0, radius, color, fill=False):
+        """
+        Draw a circle using Bresenham's algorithm
+        
+        Args:
+            x0, y0: Center coordinates
+            radius: Circle radius
+            color: Circle color
+            fill: Whether to fill the circle (default: False)
+        """
+        x = radius
+        y = 0
+        err = 0
+
+        while x >= y:
+            if fill:
+                # Fill in the circle by drawing horizontal lines
+                self.hline(x0 - x, y0 + y, 2 * x, color)  # Bottom half
+                self.hline(x0 - x, y0 - y, 2 * x, color)  # Top half
+                self.hline(x0 - y, y0 + x, 2 * y, color)  # Bottom half
+                self.hline(x0 - y, y0 - x, 2 * y, color)  # Top half
+            else:
+                # Draw eight points for each iteration
+                self.pixel(x0 + x, y0 + y, color)
+                self.pixel(x0 - x, y0 + y, color)
+                self.pixel(x0 + x, y0 - y, color)
+                self.pixel(x0 - x, y0 - y, color)
+                self.pixel(x0 + y, y0 + x, color)
+                self.pixel(x0 - y, y0 + x, color)
+                self.pixel(x0 + y, y0 - x, color)
+                self.pixel(x0 - y, y0 - x, color)
+
+            y += 1
+            err += 1 + 2 * y
+            if 2 * (err - x) + 1 > 0:
+                x -= 1
+                err += 1 - 2 * x
         
     def write_cmd(self, cmd): # Write command
         self.cs(1)
@@ -325,12 +362,6 @@ class LCD_1inch28(framebuf.FrameBuffer):
         self.spi.write(self.buffer)
         self.cs(1)
         
-    '''
-        Partial display, the starting point of the local
-        display here is reduced by 10, and the end point
-        is increased by 10
-    '''
-    #Partial display, the starting point of the local display here is reduced by 10, and the end point is increased by 10
     def Windows_show(self,Xstart,Ystart,Xend,Yend):
         if Xstart > Xend:
             data = Xstart
@@ -359,30 +390,14 @@ class LCD_1inch28(framebuf.FrameBuffer):
             self.spi.write(self.buffer[Addr : Addr+((Xend-Xstart)*2)])
         self.cs(1)
         
-    # Write characters, size is the font size, the minimum is 1  
     def write_text(self,text,x,y,size,color):
-        ''' Method to write Text on OLED/LCD Displays
-            with a variable font size
-
-            Args:
-                text: the string of chars to be displayed
-                x: x co-ordinate of starting position
-                y: y co-ordinate of starting position
-                size: font size of text
-                color: color of text to be displayed
-        '''
-        background = self.pixel(x,y)
-        info = []
-        # Creating reference charaters to read their values
-        self.text(text,x,y,color)
-        for i in range(x,x+(8*len(text))):
-            for j in range(y,y+8):
-                # Fetching amd saving details of pixels, such as
-                # x co-ordinate, y co-ordinate, and color of the pixel
-                px_color = self.pixel(i,j)
-                info.append((i,j,px_color)) if px_color == color else None
-        # Clearing the reference characters from the screen
-        self.text(text,x,y,background)
-        # Writing the custom-sized font characters on screen
-        for px_info in info:
-            self.fill_rect(size*px_info[0] - (size-1)*x , size*px_info[1] - (size-1)*y, size, size, px_info[2]) 
+            background = self.pixel(x,y)
+            info = []
+            self.text(text,x,y,color)
+            for i in range(x,x+(8*len(text))):
+                for j in range(y,y+8):
+                    px_color = self.pixel(i,j)
+                    info.append((i,j,px_color)) if px_color == color else None
+            self.text(text,x,y,background)
+            for px_info in info:
+                self.fill_rect(size*px_info[0] - (size-1)*x , size*px_info[1] - (size-1)*y, size, size, px_info[2])
