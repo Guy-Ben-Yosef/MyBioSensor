@@ -1,3 +1,7 @@
+from machine import Pin,I2C,SPI,PWM,Timer,ADC
+import framebuf
+import time
+
 class Touch_CST816T(object):
     def __init__(self, address=0x15, mode=0, i2c_num=1, i2c_sda=6, i2c_scl=7, int_pin=17, rst_pin=16, LCD=None):
         # Initialize reset pin first

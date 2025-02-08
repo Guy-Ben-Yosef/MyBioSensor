@@ -1,3 +1,16 @@
+from machine import Pin,I2C,SPI,PWM,Timer,ADC
+import framebuf
+import time
+
+DC = 14
+CS = 9
+SCK = 10
+MOSI = 11
+MISO = 12
+RST = 8
+
+BL = 15 
+
 class LCD_1inch28(framebuf.FrameBuffer):
     def __init__(self): # SPI initialization
         self.width = 240

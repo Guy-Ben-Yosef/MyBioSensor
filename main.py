@@ -1,6 +1,7 @@
-from machine import Pin,I2C,SPI,PWM,Timer,ADC
-import framebuf
+from machine import Pin, I2C, SPI
 import time
+from lcd import LCD_1inch28
+from touch import Touch_CST816T
 
 # Pin definition
 I2C_SDA = 6
@@ -128,8 +129,6 @@ def Touch_Gesture():
         LCD.show() 
         time.sleep(0.1)
         
-
-        
 if __name__=='__main__':
   
     LCD = LCD_1inch28()
@@ -137,6 +136,10 @@ if __name__=='__main__':
 
     Touch = Touch_CST816T(mode=1,LCD=LCD)
     
+#    Touch_Gesture()
+    
+#    Touch_HandWriting()
+
     try:
         while True:
             if Touch.Flag:
@@ -145,13 +148,6 @@ if __name__=='__main__':
             
     except KeyboardInterrupt:
         print("\nTest ended by user")
-    
-    
-
-
-#    Touch_Gesture()
-    
-#    Touch_HandWriting()
 
 
 
