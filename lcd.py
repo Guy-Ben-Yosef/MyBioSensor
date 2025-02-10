@@ -33,6 +33,8 @@ class LCD_1inch28(framebuf.FrameBuffer):
         self.white =   0xffff
         self.black =   0x0000
         self.brown =   0X8430
+        self.analyze = 0XCB7C
+        self.dry = 0XFAAA
         
         self.fill(self.white)
         self.show()
@@ -390,6 +392,34 @@ class LCD_1inch28(framebuf.FrameBuffer):
             self.spi.write(self.buffer[Addr : Addr+((Xend-Xstart)*2)])
         self.cs(1)
         
+    def display_image(self, filename):
+        '''
+        Display a binary image file (RGB565 format) on the LCD
+        Args:
+            filename: name of the .bin file containing the image data
+        '''
+        try:
+            with open(filename, 'rb') as f:
+                image_data = f.read()
+                
+            # Verify file size is correct (240x240x2 bytes)
+            if len(image_data) != 115200:  # 240 * 240 * 2
+                raise ValueError("Image file size incorrect. Must be 240x240 pixels in RGB565 format")
+                
+            # Copy the image data to the LCD buffer
+            for i in range(len(image_data)):
+                self.buffer[i] = image_data[i]
+            
+            # Display the image
+            self.show()
+            
+        except OSError as e:
+            print(f"Error opening file {filename}: {str(e)}")
+        except ValueError as e:
+            print(f"Error with image format: {str(e)}")
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+
     def write_text(self,text,x,y,size,color):
             background = self.pixel(x,y)
             info = []
