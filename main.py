@@ -128,42 +128,99 @@ def Touch_Gesture():
         LCD.write_text('Double Click',25,110,2,LCD.black)
         LCD.show() 
         time.sleep(0.1)
+            
+def main():
+    Touch.Flag = 0
+    Touch.Mode = 1
+    Touch.Set_Mode(Touch.Mode)
+    
+    LCD.display_image('wallpaper.bin')
+    
+    try:
+        while True:
+            if Touch.Flag == 1:
+                x, y = Touch.X_point, Touch.Y_point
+                
+                # Check if touch is in the drawing area
+                if y < 120:
+                    # Animation texts
+                    texts = ["Analyzing", "Analyzing.", "Analyzing..", "Analyzing..."]
+                    delay = 0.25  # 250ms
+                    duration = 5  # 5 seconds
+
+                    # Calculate frames and timing
+                    frames_per_second = 4  # Since we have 4 animation frames
+                    total_seconds = duration  # 5 seconds
+
+                    try:
+                        for second in range(total_seconds, 0, -1):  # 5 down to 1
+                            # Show all 4 animation frames for each second
+                            for text in texts:
+                                # Clear screen with white
+                                LCD.fill(LCD.white)
+                                
+                                # Display current animation frame
+                                LCD.write_text(text, 30, 90, 2, LCD.black)
+                                
+                                # Update display
+                                LCD.show()
+                                
+                                # Wait for 250ms
+                                time.sleep(delay)
+
+                        LCD.display_image('wallpaper.bin')
+
+                    except KeyboardInterrupt:
+                        print("Animation stopped by user")
+                        
+                else:
+                    # Animation texts
+                    texts = ["Drying", "Drying.", "Drying..", "Drying..."]
+                    delay = 0.25  # 250ms
+                    duration = 10  # 5 seconds
+
+                    # Calculate frames and timing
+                    frames_per_second = 4  # Since we have 4 animation frames
+                    total_seconds = duration  # 5 seconds
+
+                    try:
+                        for second in range(total_seconds, 0, -1):  # 5 down to 1
+                            # Show all 4 animation frames for each second
+                            for text in texts:
+                                # Clear screen with white
+                                LCD.fill(LCD.white)
+                                
+                                # Display current animation frame
+                                LCD.write_text(text, 30, 90, 2, LCD.black)
+                                
+                                # Display countdown
+                                countdown = f"{second}s"
+                                LCD.write_text(countdown, 100, 130, 2, LCD.black)
+                                
+                                # Update display
+                                LCD.show()
+                                
+                                # Wait for 250ms
+                                time.sleep(delay)
+
+                        LCD.display_image('wallpaper.bin')
+
+                    except KeyboardInterrupt:
+                        print("Animation stopped by user")
+                
+                Touch.Flag = 0
+                
+    except KeyboardInterrupt:
+        print("Test ended by user")
+        
         
 if __name__=='__main__':
   
+    # Initialize LCD and set brightness
     LCD = LCD_1inch28()
     LCD.set_bl_pwm(65535)
 
-    Touch = Touch_CST816T(mode=1,LCD=LCD)
+    # Initialize touch
+    Touch = Touch_CST816T(mode=1, LCD=LCD)
     
-#    Touch_Gesture()
-    
-#    Touch_HandWriting()
-
-    try:
-        while True:
-            if Touch.Flag:
-                Touch.Flag = 0
-            time.sleep_ms(100)
-            
-    except KeyboardInterrupt:
-        print("\nTest ended by user")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    main()
