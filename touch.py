@@ -1,5 +1,4 @@
 from machine import Pin,I2C,SPI,PWM,Timer,ADC
-import framebuf
 import time
 
 class Touch_CST816T(object):
@@ -109,7 +108,6 @@ class Touch_CST816T(object):
         x, y = self.get_point()
         self.X_point = x
         self.Y_point = y
-        print(f"Touch detected at X: {x}, Y: {y}")
 
     def Timer_callback(self,t):
         self.l += 1
