@@ -74,26 +74,72 @@ def run_animation_sequence(lcd, animation_config, show_countdown=False):
                 )
                 time.sleep(animation_config['delay'])
                 
-        lcd.display_image('wallpaper.bin')
-        
     except KeyboardInterrupt:
         print("Animation stopped by user")
 
-def handle_touch_event(lcd, x, y):
+def wait_for_touch(touch):
+    """
+    Waits for any touch event
+    
+    Args:
+        touch: Touch controller object
+    """
+    touch.Flag = 0  # Reset touch flag
+    while True:
+        if touch.Flag == 1:
+            touch.Flag = 0
+            return
+
+def handle_analysis_result(lcd, touch, x):
+    """
+    Handles displaying analysis result based on touch position
+    
+    Args:
+        lcd: LCD display object
+        touch: Touch controller object
+        x (int): X coordinate of touch
+    """
+    # First show analyzing animation
+    animation = create_animation_sequence("Analyzing", duration=5)
+    run_animation_sequence(lcd, animation)
+    
+    # Then show appropriate result image based on x position
+    if x < 80:
+        lcd.display_image('Safe.bin')
+    elif x < 160:
+        lcd.display_image('Uncertain.bin')
+    else:
+        lcd.display_image('Alert.bin')
+    
+    # Wait for any touch to return to wallpaper
+    wait_for_touch(touch)
+    lcd.display_image('wallpaper.bin')
+
+def handle_drying_mode(lcd):
+    """
+    Handles drying mode animation sequence
+    
+    Args:
+        lcd: LCD display object
+    """
+    animation = create_animation_sequence("Drying", duration=10)
+    run_animation_sequence(lcd, animation, show_countdown=True)
+    lcd.display_image('wallpaper.bin')
+
+def handle_touch_event(lcd, touch, x, y):
     """
     Handles touch events and triggers appropriate animations
     
     Args:
         lcd: LCD display object
+        touch: Touch controller object
         x (int): X coordinate of touch
         y (int): Y coordinate of touch
     """
     if y < 120:  # Upper half - Analysis mode
-        animation = create_animation_sequence("Analyzing", duration=5)
-        run_animation_sequence(lcd, animation)
+        handle_analysis_result(lcd, touch, x)
     else:  # Lower half - Drying mode
-        animation = create_animation_sequence("Drying", duration=10)
-        run_animation_sequence(lcd, animation, show_countdown=True)
+        handle_drying_mode(lcd)
 
 def initialize_hardware():
     """
@@ -125,7 +171,7 @@ def main_loop(lcd, touch):
     try:
         while True:
             if touch.Flag == 1:
-                handle_touch_event(lcd, touch.X_point, touch.Y_point)
+                handle_touch_event(lcd, touch, touch.X_point, touch.Y_point)
                 touch.Flag = 0
                 
     except KeyboardInterrupt:
